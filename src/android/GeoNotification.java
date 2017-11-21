@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 
 public class GeoNotification {
     @Expose public String id;
+    @Expose public String url;
     @Expose public double latitude;
     @Expose public double longitude;
     @Expose public int radius;

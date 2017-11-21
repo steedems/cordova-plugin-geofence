@@ -6,6 +6,13 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 import android.Manifest;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -28,7 +35,7 @@ public class GeofencePlugin extends CordovaPlugin {
     public static final String ERROR_GEOFENCE_LIMIT_EXCEEDED = "GEOFENCE_LIMIT_EXCEEDED";
 
     private GeoNotificationManager geoNotificationManager;
-    private Context context;
+    private static Context context;
     public static CordovaWebView webView = null;
 
     private class Action {
@@ -47,10 +54,8 @@ public class GeofencePlugin extends CordovaPlugin {
     private Action executedAction;
 
     /**
-     * @param cordova
-     *            The context of the main Activity.
-     * @param webView
-     *            The associated CordovaWebView.
+     * @param cordova The context of the main Activity.
+     * @param webView The associated CordovaWebView.
      */
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -111,8 +116,35 @@ public class GeofencePlugin extends CordovaPlugin {
 
     public static void onTransitionReceived(List<GeoNotification> notifications) {
         Log.d(TAG, "Transition Event Received!");
+
+        for(GeoNotification notification: notifications) {
+            if (notification.url != null) {
+                RequestQueue requestQueue = Volley.newRequestQueue(context);
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                        Request.Method.GET,
+                        notification.url,
+                        null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                // Do something with response
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // Do something when error occurred
+                            }
+                        }
+                );
+                webView.sendJavascript("console.log('dio')");
+
+                requestQueue.add(jsonObjectRequest);
+            }
+        }
+
         String js = "setTimeout('geofence.onTransitionReceived("
-            + Gson.get().toJson(notifications) + ")',0)";
+                + Gson.get().toJson(notifications) + ")',0)";
         if (webView == null) {
             Log.d(TAG, "Webview is null");
         } else {
@@ -134,8 +166,8 @@ public class GeofencePlugin extends CordovaPlugin {
 
     private void initialize(CallbackContext callbackContext) {
         String[] permissions = {
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
         };
 
         if (!hasPermissions(permissions)) {
@@ -158,7 +190,7 @@ public class GeofencePlugin extends CordovaPlugin {
         PluginResult result;
 
         if (executedAction != null) {
-            for (int r:grantResults) {
+            for (int r : grantResults) {
                 if (r == PackageManager.PERMISSION_DENIED) {
                     Log.d(TAG, "Permission Denied!");
                     result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
