@@ -137,7 +137,7 @@ public class GeofencePlugin extends CordovaPlugin {
                             }
                         }
                 );
-                webView.sendJavascript("console.log('dio')");
+                webView.sendJavascript("console.log('jsonObjectRequest sent')");
 
                 requestQueue.add(jsonObjectRequest);
             }
