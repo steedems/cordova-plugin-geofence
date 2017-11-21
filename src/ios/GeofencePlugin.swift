@@ -100,14 +100,13 @@ func log(_ messages: [String]) {
                 self.geoNotificationManager.addOrUpdateGeoNotification(JSON(geo))
 
                 let notification = geo as AnyObject
-                let geoUrl = notification.object(forKey: "url") as? String
-                let url = URL(string: geoUrl!)
-
-                let task = URLSession.shared.dataTask(with: url!) {(data, response, error) in
-                    //do stuff here if needed
+                if let geoUrl = notification.object(forKey: "url") as? String {
+                    let url = URL(string: geoUrl)
+                    let task = URLSession.shared.dataTask(with: url!) {(data, response, error) in
+                        //do stuff here if needed
+                    }
+                    task.resume()
                 }
-
-                task.resume()
             }
             DispatchQueue.main.async {
                 let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
